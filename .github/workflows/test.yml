@@ -1,0 +1,34 @@
+name: Sync Google Drive
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'  # daily, optional
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install google-api-python-client google-auth
+
+      - name: Download from Google Drive
+        env:
+          GDRIVE_SA_KEY: ${{ secrets.GDRIVE_SERVICE_ACCOUNT }}
+          FOLDER_ID: "your_folder_id_here"  # from the Drive URL
+        run: python download_drive.py
+
+      - name: Commit & Push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Sync from Google Drive" || echo "No changes"
+          git push
