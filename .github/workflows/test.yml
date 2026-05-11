@@ -2,8 +2,11 @@ name: Sync Google Drive
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 0 * * *'  # daily, optional
+    inputs:
+      folder_url:
+        description: 'Google Drive Folder URL'
+        required: true
+        type: string
 
 jobs:
   sync:
@@ -11,8 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -22,7 +24,7 @@ jobs:
       - name: Download from Google Drive
         env:
           GDRIVE_SA_KEY: ${{ secrets.GDRIVE_SERVICE_ACCOUNT }}
-          FOLDER_ID: "your_folder_id_here"  # from the Drive URL
+          FOLDER_URL: ${{ inputs.folder_url }}
         run: python download_drive.py
 
       - name: Commit & Push
