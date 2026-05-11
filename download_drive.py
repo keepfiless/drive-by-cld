@@ -6,7 +6,11 @@ from googleapiclient.http import MediaIoBaseDownload
 from google.oauth2 import service_account
 
 # Load credentials and folder URL from environment
-SA_KEY = json.loads(os.environ["GDRIVE_SA_KEY"])
+SA_KEY_RAW = os.environ.get("GDRIVE_SA_KEY", "")
+if not SA_KEY_RAW:
+    raise ValueError("GDRIVE_SA_KEY secret is empty or not set! Check your GitHub Secrets.")
+
+SA_KEY = json.loads(SA_KEY_RAW)
 FOLDER_URL = os.environ["FOLDER_URL"]
 
 # Extract folder ID from URL
@@ -37,12 +41,10 @@ def download_folder(folder_id, local_path="downloads"):
             file_path = os.path.join(local_path, file["name"])
 
             if file["mimeType"] == "application/vnd.google-apps.folder":
-                # Recurse into subfolder
                 print(f"Entering folder: {file['name']}")
                 download_folder(file["id"], file_path)
 
             elif file["mimeType"].startswith("application/vnd.google-apps"):
-                # Export Google Docs/Sheets/Slides as Office formats
                 export_map = {
                     "application/vnd.google-apps.document":
                         ("application/vnd.openxmlformats-officedocument.wordprocessingml.document", ".docx"),
@@ -67,7 +69,6 @@ def download_folder(folder_id, local_path="downloads"):
                         _, done = downloader.next_chunk()
 
             else:
-                # Regular file download
                 request = service.files().get_media(fileId=file["id"])
                 print(f"Downloading: {file['name']}")
                 with open(file_path, "wb") as f:
