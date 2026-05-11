@@ -21,6 +21,17 @@ jobs:
       - name: Install dependencies
         run: pip install google-api-python-client google-auth
 
+      - name: Debug secret
+        env:
+          GDRIVE_SA_KEY: ${{ secrets.GDRIVE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$GDRIVE_SA_KEY" ]; then
+            echo "SECRET IS EMPTY!"
+          else
+            echo "Secret length: ${#GDRIVE_SA_KEY}"
+            echo "First 20 chars: ${GDRIVE_SA_KEY:0:20}"
+          fi
+
       - name: Download from Google Drive
         env:
           GDRIVE_SA_KEY: ${{ secrets.GDRIVE_SERVICE_ACCOUNT }}
